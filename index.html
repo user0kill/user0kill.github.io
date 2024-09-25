@@ -3,28 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello Khaled</title>
-    <style>
-        body {
-            background-color: #f0f0f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            font-family: Arial, sans-serif;
-        }
-
-        .greeting {
-            background-color: #4CAF50; /* Green background */
-            color: white; /* White text */
-            padding: 20px 30px; /* Some padding */
-            border-radius: 10px; /* Rounded corners */
-            font-size: 24px; /* Larger font size */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Shadow effect */
-        }
-    </style>
+    <title>Customer Management</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="greeting">Hello Khaled</div>
+    <h1>Customer List</h1>
+
+    <!-- Customer Table -->
+    <table id="customerTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Balance</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be inserted here dynamically by JavaScript -->
+        </tbody>
+    </table>
+
+    <!-- Form to Add Data -->
+    <div class="add-data-form">
+        <h3>Add Transaction</h3>
+        <input type="text" id="customerName" placeholder="Customer Name">
+        <input type="number" id="amount" placeholder="Amount">
+        <button id="addCustomer">Add Customer</button>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
