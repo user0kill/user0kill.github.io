@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner with Counter</title>
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <style>
+        #reader {
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>QR Code Scanner</h1>
+    <div id="reader"></div>
+    <h2>Scanned Count: <span id="counter">0</span></h2>
+    <button id="start-button">Start Scanning</button>
+    <button id="stop-button">Stop Scanning</button>
+    <p id="error-message" style="color:red;"></p>
+
+    <script>
+        // Function to update the counter and store it in local storage
+        function updateCounter() {
+            let count = parseInt(localStorage.getItem('qrScanCount')) || 0;
+            count++;
+            localStorage.setItem('qrScanCount', count);
+            document.getElementById('counter').innerText = count;
+        }
+
+        // Function to initialize the counter
+        function initializeCounter() {
+            let count = parseInt(localStorage.getItem('qrScanCount')) || 0;
+            document.getElementById('counter').innerText = count;
+        }
+
+        initializeCounter(); // Initialize counter when the page loads
+
+        // QR scanner instance
+        const html5QrCode = new Html5Qrcode("reader");
+
+        // Function to handle starting the camera and scanning
+        function startScanning() {
+            // First, request permission explicitly
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then((stream) => {
+                    // If the permission is granted, start the QR scanner
+                    html5QrCode.start(
+                        { facingMode: "environment" },  // Use rear camera
+                        {
+                            fps: 10,  // Frame rate for scanning
+                            qrbox: { width: 250, height: 250 }  // Scanning box size
+                        },
+                        (decodedText, decodedResult) => {
+                            console.log(`QR Code detected: ${decodedText}`);
+                            updateCounter();  // Increment the counter on successful scan
+                        },
+                        (errorMessage) => {
+                            console.warn(`QR Code scan error: ${errorMessage}`);
+                        }
+                    ).catch(err => {
+                        console.error(`Unable to start scanning: ${err}`);
+                        document.getElementById('error-message').innerText = `Unable to start scanning: ${err}`;
+                    });
+                })
+                .catch((err) => {
+                    console.error(`Camera permission denied: ${err}`);
+                    document.getElementById('error-message').innerText = `Camera permission denied: ${err}`;
+                });
+        }
+
+        // Event listener for start button
+        document.getElementById('start-button').addEventListener('click', startScanning);
+
+        // Event listener for stop button
+        document.getElementById('stop-button').addEventListener('click', () => {
+            html5QrCode.stop().then(() => {
+                console.log("QR Code scanning stopped.");
+            }).catch(err => {
+                console.error("Unable to stop scanning: ", err);
+                document.getElementById('error-message').innerText = `Unable to stop scanning: ${err}`;
+            });
+        });
+    </script>
+</body>
+</html>
