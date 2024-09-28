@@ -38,6 +38,9 @@
     td {
       background-color: #fff;
     }
+    canvas {
+      display: none; /* Canvas is hidden as it's used for QR scanning */
+    }
   </style>
 </head>
 <body>
@@ -45,7 +48,6 @@
   <h2>Total Value: <span id="totalValue">0</span></h2>
   <video id="camera" autoplay playsinline></video>
   <canvas id="canvas"></canvas>
-  <p>QR Code Data: <span id="outputData"></span></p>
 
   <h2>Scanned Codes</h2>
   <table id="qrTable">
@@ -66,7 +68,6 @@
   <script>
     const video = document.getElementById('camera');
     const canvas = document.getElementById('canvas');
-    const outputData = document.getElementById('outputData');
     const context = canvas.getContext('2d');
     const qrTableBody = document.querySelector("#qrTable tbody");
     const totalValueElement = document.getElementById('totalValue');
@@ -92,20 +93,26 @@
       const code = jsQR(imageData.data, canvas.width, canvas.height);
 
       if (code) {
-        outputData.textContent = code.data; // Display the QR code value
-        console.log("QR Code found: ", code.data);
+        const qrValue = code.data;
+        
+        // Check if the value is a valid integer
+        if (isInteger(qrValue)) {
+          const currentDate = new Date().toLocaleString();
+          const newQRData = { value: qrValue, date: currentDate };
+          saveQRCode(newQRData);
 
-        // Add QR code to localStorage with the current date
-        const currentDate = new Date().toLocaleString();
-        const newQRData = { value: code.data, date: currentDate };
-        saveQRCode(newQRData);
-
-        // Update total value
-        totalValue += Number(code.data);
-        totalValueElement.textContent = totalValue;
-      } else {
-        requestAnimationFrame(scanQRCode); // Keep scanning
+          // Update total value
+          totalValue += Number(qrValue);
+          totalValueElement.textContent = totalValue;
+        }
       }
+      requestAnimationFrame(scanQRCode); // Keep scanning
+    }
+
+    // Helper function to check if a value is an integer
+    function isInteger(value) {
+      const num = Number(value);
+      return Number.isInteger(num);
     }
 
     // Save the scanned QR code and date to localStorage
