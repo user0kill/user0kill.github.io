@@ -3,17 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Camera Feed</title>
+  <title>Back Camera Feed</title>
 </head>
 <body>
-  <h1>Camera Feed</h1>
+  <h1>Back Camera Feed</h1>
   <video id="camera" autoplay playsinline></video>
 
   <script>
     // Check if the browser supports the getUserMedia API
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      // Request access to the camera
-      navigator.mediaDevices.getUserMedia({ video: true })
+      // Request access to the back camera
+      navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { exact: "environment" } }
+      })
         .then(function(stream) {
           // Get the video element
           const video = document.getElementById('camera');
