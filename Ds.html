@@ -3,28 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Back Camera Feed</title>
+  <title>QR Code Scanner</title>
+  <style>
+    video {
+      width: 100%;
+      height: auto;
+    }
+    canvas {
+      display: none; /* We use canvas to process the camera feed */
+    }
+  </style>
 </head>
 <body>
-  <h1>Back Camera Feed</h1>
+  <h1>QR Code Scanner</h1>
   <video id="camera" autoplay playsinline></video>
+  <canvas id="canvas"></canvas>
+  <p>QR Code Data: <span id="outputData"></span></p>
+
+  <!-- Include jsQR from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
   <script>
+    const video = document.getElementById('camera');
+    const canvas = document.getElementById('canvas');
+    const outputData = document.getElementById('outputData');
+    const context = canvas.getContext('2d');
+
+    // Function to start scanning the QR code
+    function scanQRCode() {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, canvas.width, canvas.height);
+
+      if (code) {
+        outputData.textContent = code.data; // Display the QR code value
+        console.log("QR Code found: ", code.data);
+      } else {
+        requestAnimationFrame(scanQRCode); // Keep scanning
+      }
+    }
+
     // Check if the browser supports the getUserMedia API
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      // Request access to the back camera
       navigator.mediaDevices.getUserMedia({
         video: { facingMode: { exact: "environment" } }
-      })
-        .then(function(stream) {
-          // Get the video element
-          const video = document.getElementById('camera');
-          // Set the video source to the camera stream
-          video.srcObject = stream;
-        })
-        .catch(function(err) {
-          console.error("Error accessing the camera: " + err);
-        });
+      }).then(function(stream) {
+        video.srcObject = stream;
+        video.setAttribute('playsinline', true); // Required to tell iOS Safari we don't want fullscreen
+
+        video.onloadedmetadata = function() {
+          video.play();
+          requestAnimationFrame(scanQRCode); // Start scanning
+        };
+      }).catch(function(err) {
+        console.error("Error accessing the camera: " + err);
+      });
     } else {
       alert("getUserMedia not supported in this browser.");
     }
