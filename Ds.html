@@ -5,20 +5,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QR Code Scanner</title>
   <style>
-    video {
-      width: 100%;
-      height: auto;
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f0f0f0;
     }
-    canvas {
-      display: none; /* We use canvas to process the camera feed */
+    h1, h2 {
+      color: #333;
+    }
+    #camera {
+      width: 50%; /* Smaller camera display */
+      margin: 10px auto;
+      border: 2px solid #333;
+      display: block;
+    }
+    table {
+      width: 80%;
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #333;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #333;
+      color: white;
+    }
+    td {
+      background-color: #fff;
     }
   </style>
 </head>
 <body>
-  <h1>QR Code Scanner</h1>
+
+  <h2>Total Value: <span id="totalValue">0</span></h2>
   <video id="camera" autoplay playsinline></video>
   <canvas id="canvas"></canvas>
   <p>QR Code Data: <span id="outputData"></span></p>
+
+  <h2>Scanned Codes</h2>
+  <table id="qrTable">
+    <thead>
+      <tr>
+        <th>QR Code Value</th>
+        <th>Date of Scan</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Table rows will be added dynamically -->
+    </tbody>
+  </table>
 
   <!-- Include jsQR from CDN -->
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -28,6 +68,19 @@
     const canvas = document.getElementById('canvas');
     const outputData = document.getElementById('outputData');
     const context = canvas.getContext('2d');
+    const qrTableBody = document.querySelector("#qrTable tbody");
+    const totalValueElement = document.getElementById('totalValue');
+    
+    // Initialize total value
+    let totalValue = 0;
+
+    // Load any saved data from localStorage when the page loads
+    window.onload = function() {
+      const storedData = JSON.parse(localStorage.getItem('scannedQRs')) || [];
+      totalValue = storedData.reduce((sum, item) => sum + Number(item.value), 0);
+      totalValueElement.textContent = totalValue;
+      displayStoredData(storedData);
+    };
 
     // Function to start scanning the QR code
     function scanQRCode() {
@@ -41,9 +94,47 @@
       if (code) {
         outputData.textContent = code.data; // Display the QR code value
         console.log("QR Code found: ", code.data);
+
+        // Add QR code to localStorage with the current date
+        const currentDate = new Date().toLocaleString();
+        const newQRData = { value: code.data, date: currentDate };
+        saveQRCode(newQRData);
+
+        // Update total value
+        totalValue += Number(code.data);
+        totalValueElement.textContent = totalValue;
       } else {
         requestAnimationFrame(scanQRCode); // Keep scanning
       }
+    }
+
+    // Save the scanned QR code and date to localStorage
+    function saveQRCode(qrData) {
+      let scannedQRs = JSON.parse(localStorage.getItem('scannedQRs')) || [];
+      scannedQRs.push(qrData);
+      localStorage.setItem('scannedQRs', JSON.stringify(scannedQRs));
+
+      // Display the new data in the table
+      addToTable(qrData);
+    }
+
+    // Add a new row to the table
+    function addToTable(qrData) {
+      const row = document.createElement('tr');
+      const qrValueCell = document.createElement('td');
+      const dateCell = document.createElement('td');
+
+      qrValueCell.textContent = qrData.value;
+      dateCell.textContent = qrData.date;
+
+      row.appendChild(qrValueCell);
+      row.appendChild(dateCell);
+      qrTableBody.appendChild(row);
+    }
+
+    // Display all stored data in the table
+    function displayStoredData(storedData) {
+      storedData.forEach(qrData => addToTable(qrData));
     }
 
     // Check if the browser supports the getUserMedia API
