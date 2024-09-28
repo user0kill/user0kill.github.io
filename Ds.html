@@ -5,50 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Scanner with Counter</title>
     <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <style>
+        #reader {
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+        }
+    </style>
 </head>
 <body>
     <h1>QR Code Scanner</h1>
-    <div id="reader" style="width: 300px;"></div>
+    <div id="reader"></div>
     <h2>Scanned Count: <span id="counter">0</span></h2>
+    <button id="start-button">Start Scanning</button>
+    <button id="stop-button">Stop Scanning</button>
+
     <script>
         // Function to update the counter and store it in local storage
         function updateCounter() {
-            // Get the current count from localStorage or set it to 0 if not available
             let count = parseInt(localStorage.getItem('qrScanCount')) || 0;
-            count++;  // Increment the count
-            localStorage.setItem('qrScanCount', count);  // Store the new count in localStorage
-            document.getElementById('counter').innerText = count;  // Update the displayed count
+            count++;
+            localStorage.setItem('qrScanCount', count);
+            document.getElementById('counter').innerText = count;
         }
 
-        // Function to initialize the counter when the page loads
+        // Function to initialize the counter
         function initializeCounter() {
             let count = parseInt(localStorage.getItem('qrScanCount')) || 0;
             document.getElementById('counter').innerText = count;
         }
 
-        // Initialize the counter when the page loads
-        initializeCounter();
+        initializeCounter(); // Initialize counter when the page loads
 
         // Initialize the QR scanner
-        let html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start(
-            { facingMode: "environment" },  // Use rear camera if available
-            {
-                fps: 10,  // Scanning frame rate
-                qrbox: { width: 250, height: 250 }  // QR scanning box size
-            },
-            (decodedText, decodedResult) => {
-                // This callback is triggered when a QR code is successfully scanned
-                console.log(`QR Code detected: ${decodedText}`);
-                updateCounter();  // Increment and update counter on each successful scan
-            },
-            (errorMessage) => {
-                // This callback is triggered in case of a scanning error (optional)
-                console.warn(`QR Code scan error: ${errorMessage}`);
-            }
-        ).catch(err => {
-            // Handle errors (e.g., camera access denied)
-            console.error(`Unable to start scanning: ${err}`);
+        const html5QrCode = new Html5Qrcode("reader");
+
+        // Event listener for start button
+        document.getElementById('start-button').addEventListener('click', () => {
+            html5QrCode.start(
+                { facingMode: "environment" },  // Use rear camera
+                {
+                    fps: 10,  // Frame rate for scanning
+                    qrbox: { width: 250, height: 250 }  // Scanning box size
+                },
+                (decodedText, decodedResult) => {
+                    console.log(`QR Code detected: ${decodedText}`);
+                    updateCounter();  // Increment the counter on successful scan
+                },
+                (errorMessage) => {
+                    console.warn(`QR Code scan error: ${errorMessage}`);
+                }
+            ).catch(err => {
+                console.error(`Unable to start scanning: ${err}`);
+            });
+        });
+
+        // Event listener for stop button
+        document.getElementById('stop-button').addEventListener('click', () => {
+            html5QrCode.stop().then(() => {
+                console.log("QR Code scanning stopped.");
+            }).catch(err => {
+                console.error("Unable to stop scanning: ", err);
+            });
         });
     </script>
 </body>
